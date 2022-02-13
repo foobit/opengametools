@@ -1377,22 +1377,24 @@ int32_t _construct_polygon_for_slice(ogt_mesh_vec2i* verts, uint32_t max_verts, 
                 // 2. none of the cells are already voxelized.
                 ogt_mesh_vec2i edge1_cursor = edge1_origin;
                 bool can_push_edge = true;
-                for (int32_t i = 0; i < edge1_len; i++) {
-                    assert(edge1_cursor.x >= 0 && edge1_cursor.x < size_x && edge1_cursor.y >= 0 && edge1_cursor.y < size_y);
-                    int32_t slice_index = edge1_cursor.x + (edge1_cursor.y * size_x);
-                    if ( slice_colors[slice_index] != polygon_color_index || voxel_polygonized.is_set(slice_index)) {
-                        can_push_edge = false;
-                        break;
+                {
+                    for (int32_t ii = 0; ii < edge1_len; ii++) {
+                        assert(edge1_cursor.x >= 0 && edge1_cursor.x < size_x && edge1_cursor.y >= 0 && edge1_cursor.y < size_y);
+                        int32_t slice_index = edge1_cursor.x + (edge1_cursor.y * size_x);
+                        if ( slice_colors[slice_index] != polygon_color_index || voxel_polygonized.is_set(slice_index)) {
+                            can_push_edge = false;
+                            break;
+                        }
+                        edge1_cursor = edge1_cursor + edge1_unitvec;
                     }
-                    edge1_cursor = edge1_cursor + edge1_unitvec;
                 }
                 // we can't push the edge to this location, we've gone as far as we can go with this edge, so jump out immediately.
                 if (!can_push_edge)
                     break;
                 // mark these cells as voxelized as they'll now be part of the polygon.
                 {
-                    ogt_mesh_vec2i edge1_cursor = edge1_origin;
-                    for (int32_t i = 0; i < edge1_len; i++) {
+                    edge1_cursor = edge1_origin;
+                    for (int32_t ii = 0; ii < edge1_len; ii++) {
                         int32_t slice_index = edge1_cursor.x + (edge1_cursor.y * size_x);
                         voxel_polygonized.set(slice_index);
                         edge1_cursor = edge1_cursor + edge1_unitvec;
@@ -1635,8 +1637,8 @@ void _polygon_meshify_voxels_in_face_direction(
 
                 // generate the verts in the output mesh
                 uint32_t base_vertex_index = mesh->vertex_count;
-                for (uint32_t i = 0; i < vert_count; i++) {
-                    mesh->vertices[mesh->vertex_count++] = _mesh_make_vertex(_transform_point(transform, _make_vec3((float)verts[i].x,   (float)verts[i].y,   (float)(k+1))), normal, color, color_index);
+                for (uint32_t ii = 0; ii < vert_count; ii++) {
+                    mesh->vertices[mesh->vertex_count++] = _mesh_make_vertex(_transform_point(transform, _make_vec3((float)verts[ii].x,   (float)verts[ii].y,   (float)(k+1))), normal, color, color_index);
                 }
 
                 // generate the indices in the output mesh.
@@ -1644,23 +1646,23 @@ void _polygon_meshify_voxels_in_face_direction(
 
                 // flip the winding of tessellated triangles to account for an inversion in the transform.
                 if (is_parity_flipped) {
-                    for (uint32_t i = 0; i < tessellated_index_count; i += 3) {
-                        uint32_t i0 = mesh->indices[mesh->index_count + i + 0];
-                        uint32_t i1 = mesh->indices[mesh->index_count + i + 1];
-                        uint32_t i2 = mesh->indices[mesh->index_count + i + 2];
-                        mesh->indices[mesh->index_count + i + 0] = base_vertex_index + i2;
-                        mesh->indices[mesh->index_count + i + 1] = base_vertex_index + i1;
-                        mesh->indices[mesh->index_count + i + 2] = base_vertex_index + i0;
+                    for (uint32_t ii = 0; ii < tessellated_index_count; ii += 3) {
+                        uint32_t i0 = mesh->indices[mesh->index_count + ii + 0];
+                        uint32_t i1 = mesh->indices[mesh->index_count + ii + 1];
+                        uint32_t i2 = mesh->indices[mesh->index_count + ii + 2];
+                        mesh->indices[mesh->index_count + ii + 0] = base_vertex_index + i2;
+                        mesh->indices[mesh->index_count + ii + 1] = base_vertex_index + i1;
+                        mesh->indices[mesh->index_count + ii + 2] = base_vertex_index + i0;
                     }
                 }
                 else {
-                    for (uint32_t i = 0; i < tessellated_index_count; i += 3) {
-                        uint32_t i0 = mesh->indices[mesh->index_count + i + 0];
-                        uint32_t i1 = mesh->indices[mesh->index_count + i + 1];
-                        uint32_t i2 = mesh->indices[mesh->index_count + i + 2];
-                        mesh->indices[mesh->index_count + i + 0] = base_vertex_index + i0;
-                        mesh->indices[mesh->index_count + i + 1] = base_vertex_index + i1;
-                        mesh->indices[mesh->index_count + i + 2] = base_vertex_index + i2;
+                    for (uint32_t ii = 0; ii < tessellated_index_count; ii += 3) {
+                        uint32_t i0 = mesh->indices[mesh->index_count + ii + 0];
+                        uint32_t i1 = mesh->indices[mesh->index_count + ii + 1];
+                        uint32_t i2 = mesh->indices[mesh->index_count + ii + 2];
+                        mesh->indices[mesh->index_count + ii + 0] = base_vertex_index + i0;
+                        mesh->indices[mesh->index_count + ii + 1] = base_vertex_index + i1;
+                        mesh->indices[mesh->index_count + ii + 2] = base_vertex_index + i2;
                     }
                 }
 
